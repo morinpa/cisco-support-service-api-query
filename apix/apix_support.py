@@ -1,26 +1,19 @@
-"""A module for querying Cisco's EoX Support API end-point
+"""A module for querying Cisco's Support API end-points
 
-This module provides an interface for querying Cisco's EoX
-Support API.
-
-    Typical usage example:
-
-    pids = ['WS-C3750X-48PF-S','C3KX-PWR-1100WAC']
-    eox = ApiEox("my_auth_token")
-    eox.query_by_pid(pids)
-    print(eox.records)
+This module provides an interface for querying Cisco's EoX and sn2info
+Support APIs.
 """
 
 from typing import List
 from typing import Dict
 import time
-import requests
+import httpx
 
 
-class ApiEox():
-    """Cisco EoX API handler
+class ApixSupport():
+    """Cisco Support API handler
 
-    Provides a handler for interacting with the Cisco EoX Support API
+    Provides a handler for interacting with the Cisco Support API
     """
 
     def __init__(self, auth_token: str, mime_type: str = 'application/json') -> None:
@@ -58,19 +51,17 @@ class ApiEox():
             A dict representing the JSON response from the requests library
 
         Raises:
-            requests.exceptions.HTTPError: An HTTP errors occured when querying
+            httpx.HTTPStatusError: An HTTP error occurred when querying
                 the API. Usually a 4xx client error or 5xx server error
-                response
+                response.
         """
-        req = requests.get(
-            url,
-            headers=self.url_headers,
-            timeout=10,
-        )
-        req.raise_for_status()
-        return req.json()
+        with httpx.Client(timeout=10.0) as client:
+            response = client.get(url, 
+                                  headers=self.url_headers)
+            response.raise_for_status()  # Raises an HTTPStatusError if the request returned an error status code
+            return response.json()
 
-    def query_by_pid(self, pids: List[str]) -> None:
+    def eox_query_by_pid(self, pids: List[str]) -> None:
         """Query EoX API end-point by PID
 
         Queries the EoX API end-point by prodict ID (PID). This takes a list
@@ -86,11 +77,13 @@ class ApiEox():
                 the API. Usually a 4xx client error or 5xx server error
                 response
         """
-        BLACK_LIST = ['', 'n/a', 'b', 'p', '^mf', 'unknown',
-                      'unspecified', 'x']
+        BLACK_LIST = ['', 'n/a', 'b', 'p', '^mf', 'unknown', 'unspecified', 'x']
         MAX_ITEMS = 20
 
-        self.items = list({pid for pid in pids if pid.lower() not in BLACK_LIST})
+        self.records = []   # Clear previous records before starting the new query
+        self.items = []     # Clear previous items before starting the new query
+
+        self.items = list({pid.strip() for pid in pids if pid.strip().lower() not in BLACK_LIST})
 
         API_URL = 'https://apix.cisco.com/supporttools/eox/rest/5/EOXByProductID/{}/{}'
 
@@ -119,3 +112,45 @@ class ApiEox():
 
             start_index = end_index
             end_index += MAX_ITEMS
+    
+    def sn2info_query_by_sn(self, serial_numbers: List[str]) -> None:
+        """
+        Query SN2Info API end-point by serial numbers.
+
+        Queries the SN2Info API end-point and retrieves coverage summary
+        for each provided serial number. Serial numbers are deduplicated before querying.
+
+        Args:
+            serial_numbers: A list of strings, each item representing a serial number to query.
+
+        Raises:
+            requests.exceptions.HTTPError: An HTTP error occurred when querying
+                the API. Usually a 4xx client error or 5xx server error response.
+        """
+        MAX_ITEMS = 75
+        BLACK_LIST = ['', 'n/a', 'unknown', 'unspecified']
+        
+        self.records = []   # Clear previous records before starting the new query
+        self.items = []     # Clear previous items before starting the new query
+
+        self.items = list({sr_no for sr_no in serial_numbers if sr_no.lower() not in BLACK_LIST})
+
+        API_URL = 'https://apix.cisco.com/sn2info/v2/coverage/summary/serial_numbers/{}'
+
+        start_index = 0
+        end_index = MAX_ITEMS
+        while start_index < len(self.items):
+            # Join serial numbers to create a query string
+            query_string = ','.join(self.items[start_index:end_index])
+            url = API_URL.format(query_string)
+            resp = self.__send_query(url)
+
+            if resp.get('serial_numbers'):
+                self.records.extend(resp['serial_numbers'])
+
+            # Increment the index window for the next set of serial numbers
+            start_index += MAX_ITEMS
+            end_index += MAX_ITEMS
+
+            # Play nice with Cisco API's and rate limit your queries
+            time.sleep(0.5)

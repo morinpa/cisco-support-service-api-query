@@ -21,10 +21,10 @@ def main():
     client_key = dotenv_values('.env')['CLIENT_KEY']
     client_secret = dotenv_values('.env')['CLIENT_SECRET']
 
-    api = ApiLogin(client_key, client_secret)
-    eox = ApiEox(api.auth_token)
+    creds = ApixLogin(client_key, client_secret)
+    support_api = ApixSupport(creds.auth_token)
     pids = ['WS-C3750X-48PF-S', 'C3KX-PWR-1100WAC', ]
-    eox.query_by_pid(pids)
+    support_api.eox_query_by_pid(pids)
 
     FNAME = 'eox_report.csv'
     with open(FNAME, mode='w') as fhand:

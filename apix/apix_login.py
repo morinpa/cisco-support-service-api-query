@@ -18,7 +18,7 @@ import time
 import requests
 
 
-class ApiLogin():
+class ApixLogin():
     """Cisco Support API login handlers
 
     Provides base modules for the Cisco Support API
