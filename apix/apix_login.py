@@ -1,16 +1,16 @@
-"""A module for handling authentication Cisco Support API's
+"""A module for handling authentication Cisco Support and Service API's
 
 This module provides an interface for authenticating against the Cisco
-Support API. You will require a valid client ID and secret. Once
+Support and Service API. You will require a valid client ID and secret. Once
 authenticated, you can use the auth_token attribute for querying
-the various support API end-points.
+the various support and Service API end-points.
 
     Typical usage example:
 
-    api = ApiLogin("my_client_key", "my_client_secret")
-    SupportApiX(api.auth_token, additional_parameters)
-    api.auth_still_valid()
-    SupportApiY(api.auth_token, additional_parameters)
+    creds = ApixLogin("my_client_key", "my_client_secret")
+    SupportApiX(creds.auth_token, additional_parameters)
+    creds.auth_still_valid()
+    ServiceApiY(creds.auth_token, additional_parameters)
 
 """
 
@@ -21,7 +21,7 @@ import requests
 class ApixLogin():
     """Cisco Support API login handlers
 
-    Provides base modules for the Cisco Support API
+    Provides base modules for the Cisco Support and Service API
     such as login functionality and token renewal. This supports
     a grant type of client credentials.
     """
@@ -29,8 +29,8 @@ class ApixLogin():
     def __init__(self, client_key: str, client_secret: str) -> None:
         """Initializes the class and logs in
 
-        Logs into the Cisco Support API with the provided client
-        ID and secret.
+        Logs into the Cisco Support and Service API with the provided 
+        client ID and secret.
 
         Args:
             client_key: A string representing the API client key
@@ -41,9 +41,9 @@ class ApixLogin():
         self.login()
 
     def login(self) -> None:
-        """Authenticates against the Cisco Support API
+        """Authenticates against the Cisco Support and Service API
 
-        Authenticates against the Cisco Support API using the
+        Authenticates against the Cisco Support and Service API using the
         initilized client ID and client secret.
 
         Attributes:
