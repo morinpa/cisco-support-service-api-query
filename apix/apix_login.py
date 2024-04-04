@@ -15,11 +15,11 @@ the various support and Service API end-points.
 """
 
 import time
-import requests
+import httpx
 
 
 class ApixLogin():
-    """Cisco Support API login handlers
+    """Cisco Support and Service API login handlers
 
     Provides base modules for the Cisco Support and Service API
     such as login functionality and token renewal. This supports
@@ -69,17 +69,26 @@ class ApixLogin():
             'client_secret': self.client_secret,
         }
 
-        req = requests.post(
-            SSO_URL,
-            data=params,
-            timeout=10,
-        )
-        req.raise_for_status()
+        try:
+            with httpx.Client(timeout=10) as client:
+                response = client.post(
+                    SSO_URL,
+                    data=params
+                )
+            
+            response.raise_for_status()
+            self.auth_resp = response.json()
+            
+            self.auth_token = f"{self.auth_resp['token_type']} {self.auth_resp['access_token']}"
 
-        self.auth_resp = req.json()
-
-        self.auth_token = \
-            f"{self.auth_resp['token_type']} {self.auth_resp['access_token']}"
+        except httpx.HTTPStatusError as http_err:
+            # Handle HTTP errors
+            print(f"HTTP error occurred: {http_err}")
+            raise
+        except Exception as err:
+            # Handle general errors
+            print(f"An error occurred: {err}")
+            raise
 
     def auth_still_valid(self) -> None:
         """Determines if the auth token is still valid
