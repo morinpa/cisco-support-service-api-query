@@ -3,8 +3,8 @@
 
 import csv
 from dotenv import dotenv_values
-from util.api_login import ApiLogin
-from util.api_eox import ApiEox
+from apix.apix_login import ApixLogin
+from apix.apix_support import ApixSupport
 
 
 def main():
@@ -41,7 +41,7 @@ def main():
                          'EndOfServiceContractRenewal',
                          'EndOfSvcAttachDate',
                          'LinkToProductBulletinURL', ])
-        for record in eox.records:
+        for record in support_api.records:
             writer.writerow([record['EOLProductID'],
                              record['ProductIDDescription'],
                              record['LastDateOfSupport']['value'],
