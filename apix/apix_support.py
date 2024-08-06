@@ -3,10 +3,12 @@
 This module provides an interface for querying Cisco's EoX and sn2info
 Support APIs.
 """
+from __future__ import annotations
 
-from typing import List
-from typing import Dict
 import time
+from typing import Dict
+from typing import List
+
 import httpx
 
 
@@ -38,7 +40,7 @@ class ApixSupport():
         self.items = []
         self.records = []
 
-    def __send_query(self, url: str,) -> Dict:
+    def __send_query(self, url: str) -> Dict:
         """Send query to a specific URL
 
         Sends a requests get to the provided URL. The self.url_headers
@@ -55,9 +57,11 @@ class ApixSupport():
                 the API. Usually a 4xx client error or 5xx server error
                 response.
         """
-        with httpx.Client(timeout=10.0) as client:
-            response = client.get(url, 
-                                  headers=self.url_headers)
+        with httpx.Client(timeout=15.0) as client:
+            response = client.get(
+                url,
+                headers=self.url_headers,
+            )
             response.raise_for_status()  # Raises an HTTPStatusError if the request returned an error status code
             return response.json()
 
@@ -95,7 +99,7 @@ class ApixSupport():
             while pagination:
                 url = API_URL.format(
                     page_index,
-                    (',').join(self.items[start_index:end_index])
+                    (',').join(self.items[start_index:end_index]),
                 )
                 resp = self.__send_query(url)
 
@@ -112,7 +116,7 @@ class ApixSupport():
 
             start_index = end_index
             end_index += MAX_ITEMS
-    
+
     def sn2info_query_by_sn(self, serial_numbers: List[str]) -> None:
         """
         Query SN2Info API end-point by serial numbers.
@@ -129,7 +133,7 @@ class ApixSupport():
         """
         MAX_ITEMS = 75
         BLACK_LIST = ['', 'n/a', 'unknown', 'unspecified']
-        
+
         self.records = []   # Clear previous records before starting the new query
         self.items = []     # Clear previous items before starting the new query
 

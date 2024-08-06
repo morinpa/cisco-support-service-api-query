@@ -13,8 +13,10 @@ the various support and Service API end-points.
     ServiceApiY(creds.auth_token, additional_parameters)
 
 """
+from __future__ import annotations
 
 import time
+
 import httpx
 
 
@@ -29,7 +31,7 @@ class ApixLogin():
     def __init__(self, client_key: str, client_secret: str) -> None:
         """Initializes the class and logs in
 
-        Logs into the Cisco Support and Service API with the provided 
+        Logs into the Cisco Support and Service API with the provided
         client ID and secret.
 
         Args:
@@ -53,7 +55,7 @@ class ApixLogin():
                 access token and token type. An example:
 
                 'Bearer 0123456789abcdef'
-        
+
         Raises:
             requests.exceptions.HTTPError: An HTTP errors occured when querying
                 the API. Usually a 4xx client error or 5xx server error
@@ -73,21 +75,21 @@ class ApixLogin():
             with httpx.Client(timeout=10) as client:
                 response = client.post(
                     SSO_URL,
-                    data=params
+                    data=params,
                 )
-            
+
             response.raise_for_status()
             self.auth_resp = response.json()
-            
+
             self.auth_token = f"{self.auth_resp['token_type']} {self.auth_resp['access_token']}"
 
         except httpx.HTTPStatusError as http_err:
             # Handle HTTP errors
-            print(f"HTTP error occurred: {http_err}")
+            print(f'HTTP error occurred: {http_err}')
             raise
         except Exception as err:
             # Handle general errors
-            print(f"An error occurred: {err}")
+            print(f'An error occurred: {err}')
             raise
 
     def auth_still_valid(self) -> None:

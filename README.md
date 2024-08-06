@@ -4,8 +4,8 @@ A utility package which can be used to query Cisco's Support and Service API's
 
 # Introduction
 
-This repo provides utilities to work with Cisco's Support and Service  API's 
-for querying different information such as EoX records. Additional API end-points 
+This repo provides utilities to work with Cisco's Support and Service  API's
+for querying different information such as EoX records. Additional API end-points
 will be added as time permits.
 
 You will need to have your own API client key and secret with a grant type of
@@ -41,11 +41,12 @@ print("now SN2INFO")
 print(support_api.records)
 
 service_api = ApixService(creds.auth_token)
-service_api.query_hardware_inventory('1234', 'inventory_name', 'Chassis')
+service_api.customerId = "1234"
+service_api.query_hardware_inventory(inventoryName='inventory_name', hwType='Chassis')
 print("now hardware")
 print(service_api.records)
 
-service_api.query_network_elements_inventory('1234', 'inventory_name')
+service_api.query_network_elements_inventory(inventoryName='inventory_name')
 print("now network elements")
 print(service_api.records)
 ```
@@ -79,7 +80,7 @@ dict_keys(['EOLProductID', 'ProductIDDescription', 'ProductBulletinNumber', 'Lin
 # Cisco Support Serial Number to Information API End-Point
 
 The [Cisco Support Serial Number to Information API end-point](https://developer.cisco.com/docs/support-apis/#!serial-number-to-information/introduction) allows you to query Cisco's Support API for information for specific serial numbers. Their API
-has a few end-points that allow you to query for 
+has a few end-points that allow you to query for
 
 - Coverage Status by Serial Number
 - Coverage Summary by Serial Number
@@ -87,18 +88,18 @@ has a few end-points that allow you to query for
 - Orderable Product Identifier by Serial Number
 - Owner Coverage Status by Serial Number
 
-The apix.apix_support.py script currently permits querying coverage summary by serial number 
+The apix.apix_support.py script currently permits querying coverage summary by serial number
 and deduplicates the list of PID's that are provided for more efficient API queries. Up
 to 75 serial numbers can be included in each API call and the script maximizes this effort.
 
 # Cisco Service inventory API End-Point
 
 The [Cisco service Inventory API end-point](https://developer.cisco.com/docs/service-apis/#!inventory/inventory) allows you to query Cisco's SService API for inventory information for specific Customer. Their API
-has a few end-points that allow you to query for 
+has a few end-points that allow you to query for
 
 - Hardware
 - Network Elements
 - Software
 
-The apix.apix_service.py script currently permits querying hardware by Customer ID, inventory name 
+The apix.apix_service.py script currently permits querying hardware by Customer ID, inventory name
 and hardware type.  It also permits querying network elements by Customer ID and inventory name.
