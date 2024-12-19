@@ -38,8 +38,8 @@ class ApixLogin():
             client_key: A string representing the API client key
             client_secret: A string representing the API client secret
         """
-        self.client_key = client_key
-        self.client_secret = client_secret
+        self.__client_key = client_key
+        self.__client_secret = client_secret
         self.login()
 
     def login(self) -> None:
@@ -67,8 +67,8 @@ class ApixLogin():
 
         params = {
             'grant_type': 'client_credentials',
-            'client_id': self.client_key,
-            'client_secret': self.client_secret,
+            'client_id': self.__client_key,
+            'client_secret': self.__client_secret,
         }
 
         try:
@@ -92,15 +92,25 @@ class ApixLogin():
             print(f'An error occurred: {err}')
             raise
 
-    def auth_still_valid(self) -> None:
+    def auth_still_valid(self) -> bool:  # The return type hint should be `bool`
         """Determines if the auth token is still valid
 
         Compares the time the token was received with the current time
-        and identifies if the delta is less than the expires in value.
-        If the delta is greater, the token is no longer valid and a new
-        token will be generated.
+        and determines if the current time has surpassed the expiration time
+        of the token. If the token has expired, a new token will be generated.
+
+        Returns:
+            True if the auth token is still valid, False otherwise.
         """
 
-        if (time.time() - self.auth_start) >= (self.auth_resp['expires_in']):
-            # Login again, which will set a self.url_headers with a new token
+        current_time = time.time()
+        # Calculate the expiration time based on auth_start and expires_in
+        expiration_time = self.auth_start + self.auth_resp.get('expires_in', 0)
+
+        if current_time >= expiration_time:
+            # Token has expired, login again which will refresh the token
             self.login()
+            return False
+
+        # Token is still valid
+        return True
